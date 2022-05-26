@@ -4,12 +4,11 @@ import data.UserDataGenerator;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
 import model.Order;
+import model.User;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.*;
 
@@ -21,16 +20,13 @@ public class CreateOrderTest {
     private  Order orderIngredientsIdList;
     private final UserClient userClient = new UserClient();
     private String accessToken;
+    private User user;
 
     @Before
     @DisplayName("Generating user data and registration user, get access token")
-    public void setUp() throws InterruptedException {
+    public void setUp(){
         orderIngredientsIdList = new Order(orderClient.getIngredientsId());
-        Map<String, String> userData = UserDataGenerator.generateUserData();
-        Response response = userClient.createUser(userData);
-        accessToken = response.path("accessToken");
-        // Для избежания ответа 429 Too Many Requests
-        TimeUnit.SECONDS.sleep(1);
+        user = UserDataGenerator.getGeneratedUser();
     }
 
     @Test
@@ -47,8 +43,11 @@ public class CreateOrderTest {
     @Test
     @DisplayName("Creating order with authorization")
     public void createOrderWithAuthorizationTest() {
-        Response response = orderClient.createOrder(orderIngredientsIdList, accessToken);
-        response
+        Response response1 = userClient.createUser(user);
+        accessToken = response1.path("accessToken");
+
+        Response response2 = orderClient.createOrder(orderIngredientsIdList, accessToken);
+        response2
                 .then()
                 .statusCode(200)
                 .body("success", equalTo(true))

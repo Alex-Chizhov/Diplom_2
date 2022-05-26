@@ -2,11 +2,10 @@ import clients.UserClient;
 import data.UserDataGenerator;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
+import model.User;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -17,24 +16,21 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 public class UserLoginTest {
 
     private final UserClient userClient = new UserClient();
-    private Map<String, String> userData;
+    private User user;
     private String accessToken;
 
     @Before
     @DisplayName("Generating user data and create user")
-    public void setUp() throws InterruptedException {
-        userData = UserDataGenerator.generateUserData();
-        Response response = userClient.createUser(userData);
+    public void setUp(){
+        user = UserDataGenerator.getGeneratedUser();
+        Response response = userClient.createUser(user);
         accessToken = response.path("accessToken");
-        // Для избежания ответа 429 Too Many Requests
-        TimeUnit.SECONDS.sleep(1);
     }
 
     @Test
     @DisplayName("User login")
     public void userLoginTest() {
-        userData.remove("name");
-        Response response = userClient.loginUser(userData);
+        Response response = userClient.loginUser(user);
         response
                 .then()
                 .statusCode(200)
@@ -47,9 +43,9 @@ public class UserLoginTest {
     @Test
     @DisplayName("User login with incorrect login and password")
     public void userLoginIncorrectLoginPasswordTest() {
-        Map<String, String> newIncorrectUserData = UserDataGenerator.generateUserData();
-        newIncorrectUserData.remove("name");
-        Response response = userClient.loginUser(newIncorrectUserData);
+        User newUser = UserDataGenerator.getGeneratedUser();
+        newUser.name = "";
+        Response response = userClient.loginUser(newUser);
         response
                 .then()
                 .statusCode(401)

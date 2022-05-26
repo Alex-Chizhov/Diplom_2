@@ -2,7 +2,7 @@ package clients;
 
 import io.qameta.allure.Step;
 import io.restassured.response.Response;
-import java.util.Map;
+import model.User;
 import static io.restassured.RestAssured.given;
 
 
@@ -11,11 +11,11 @@ public class UserClient extends BaseClient {
     private final String ENDPOINT = "/api/auth";
 
     @Step("Create user")
-    public Response createUser(Map<String, String> data) {
+    public Response createUser(User user) {
         return given()
                 .header("Content-type", JSON)
                 .and()
-                .body(data)
+                .body(user)
                 .when()
                 .post(BASEURL + ENDPOINT + "/register");
     }
@@ -30,22 +30,22 @@ public class UserClient extends BaseClient {
 
 
     @Step("User login")
-    public Response loginUser(Map<String, String> data) {
+    public Response loginUser(User user) {
         return given()
                 .header("Content-type", JSON)
                 .and()
-                .body(data)
+                .body(user)
                 .when()
                 .post(BASEURL + ENDPOINT + "/login");
     }
 
     @Step("Change user data")
-    public Response changeUserData(Map<String, String> data, String  accessToken) {
+    public Response changeUserData(User user, String  accessToken) {
         return given()
                 .header("Content-type", JSON)
                 .header("Authorization", accessToken)
                 .and()
-                .body(data)
+                .body(user)
                 .when()
                 .patch(BASEURL + ENDPOINT + "/user");
     }

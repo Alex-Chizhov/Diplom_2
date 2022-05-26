@@ -2,12 +2,10 @@ import clients.UserClient;
 import data.UserDataGenerator;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
+import model.User;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 
 
@@ -19,33 +17,31 @@ public class ChangeUserDataTest {
 
     @Before
     @DisplayName("Generating user data and create user, get access token")
-    public void setUp() throws InterruptedException {
-        Map<String, String> userData = UserDataGenerator.generateUserData();
-        Response response = userClient.createUser(userData);
+    public void setUp(){
+        User user = UserDataGenerator.getGeneratedUser();
+        Response response = userClient.createUser(user);
         accessToken = response.path("accessToken");
-        // Для избежания ответа 429 Too Many Requests
-        TimeUnit.SECONDS.sleep(1);
     }
 
     @Test
     @DisplayName("Change user data with authorization")
     public void changeUserDataWithAuthorizationTest() {
-        Map<String, String> newUserData = UserDataGenerator.generateUserData();
-        Response responseChangedData = userClient.changeUserData(newUserData, accessToken);
+        User newUser = UserDataGenerator.getGeneratedUser();
+        Response responseChangedData = userClient.changeUserData(newUser, accessToken);
         responseChangedData
                         .then()
                         .statusCode(200)
                         .body("success", equalTo(true))
-                        .body("user.email", equalTo(newUserData.get("email")))
-                        .body("user.name", equalTo(newUserData.get("name")));
+                        .body("user.email", equalTo(newUser.email))
+                        .body("user.name", equalTo(newUser.name));
 
     }
 
     @Test
     @DisplayName("Change user data without authorization")
     public void changeUserDataWithoutAuthorizationTest() {
-        Map<String, String> newUserData = UserDataGenerator.generateUserData();
-        Response responseChangedData = userClient.changeUserData(newUserData, "");
+        User newUser = UserDataGenerator.getGeneratedUser();
+        Response responseChangedData = userClient.changeUserData(newUser, "");
         responseChangedData
                         .then()
                         .statusCode(401)

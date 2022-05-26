@@ -2,12 +2,10 @@ import clients.UserClient;
 import data.UserDataGenerator;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
+import model.User;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
@@ -16,21 +14,19 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 public class CreateUserTest {
 
     private final UserClient userClient = new UserClient();
-    private Map<String, String> userData;
+    private User user;
     private String accessToken;
 
     @Before
     @DisplayName("Generating user data")
-    public void setUp() throws InterruptedException {
-        userData = UserDataGenerator.generateUserData();
-        // Для избежания ответа 429 Too Many Requests
-        TimeUnit.SECONDS.sleep(1);
+    public void setUp() {
+        user = UserDataGenerator.getGeneratedUser();
     }
 
     @Test
     @DisplayName("Creating user")
     public void createUserTest() {
-        Response response = userClient.createUser(userData);
+        Response response = userClient.createUser(user);
         accessToken = response.path("accessToken");
         response
                 .then()
@@ -42,10 +38,12 @@ public class CreateUserTest {
 
     @Test
     @DisplayName("Creating existing user")
-    public void createUserAlreadyExistsTest() {
-        userClient.createUser(userData);
-        Response response = userClient.createUser(userData);
-        response
+    public void createUserAlreadyExistsTest(){
+        User oldUser = UserDataGenerator.getGeneratedUser();
+        userClient.createUser(oldUser);
+        
+        Response response2 = userClient.createUser(oldUser);
+        response2
                 .then()
                 .statusCode(403)
                 .body("success", equalTo(false))
@@ -55,8 +53,8 @@ public class CreateUserTest {
     @Test
     @DisplayName("Creating user without data")
     public void createUserWithoutData() {
-        userData.clear();
-        Response response = userClient.createUser(userData);
+        User user = new User();
+        Response response = userClient.createUser(user);
         response
                 .then()
                 .statusCode(403)

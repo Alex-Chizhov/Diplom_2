@@ -2,20 +2,17 @@ package data;
 
 import com.github.javafaker.Faker;
 import io.qameta.allure.Step;
-import java.util.HashMap;
-import java.util.Map;
+import model.User;
 
 
 public class UserDataGenerator {
 
-    @Step("Generating user data")
-    public static Map <String, String> generateUserData() {
-        HashMap <String, String> userData = new HashMap <>();
+    @Step("User generating")
+    public static User getGeneratedUser() {
         Faker faker = new Faker();
-        userData.put("email", faker.internet().emailAddress());
-        userData.put("password", faker.internet().password());
-        userData.put("name", faker.name().firstName());
-
-        return userData;
+        return new User(
+                faker.internet().emailAddress(),
+                faker.internet().password(),
+                faker.name().firstName());
     }
 }
